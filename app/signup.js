@@ -1,226 +1,135 @@
 import React, { useState } from "react";
 import {
   View,
-  SafeAreaView,
-  Image,
-  Alert,
-  TextInput,
   Text,
+  TextInput,
   TouchableOpacity,
+  Alert,
+  StyleSheet,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Stack, useRouter } from "expo-router";
-import { COLORS, icons, SHADOWS } from "../constants";
+import { useRouter } from "expo-router";
 
-const SignUp = () => {
+export default function SignUp() {
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const router = useRouter();
 
-  const handleRegister = async () => {
-    if (!userName || !email || !password) {
-      Alert.alert(
-        "Validation Error",
-        "Please fill in all fields."
-      );
-      return;
+  // Step 2: Form Validation
+  const validateForm = () => {
+    if (!userName.trim() || !email.trim() || !password.trim()) {
+      Alert.alert("Greška", "Molimo popunite sva polja.");
+      return false;
     }
 
-    const userDetails = {
-      userName,
-      email,
-      password,
-      token: "sample-token",
-    };
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert("Greška", "Unesite validnu email adresu.");
+      return false;
+    }
 
-    try {
-      await AsyncStorage.setItem(
-        "userDetails",
-        JSON.stringify(userDetails)
-      );
+    return true;
+  };
 
-      console.log("User registered:", userDetails);
+  // Step 3: Handle Registration and Navigation
+  const handleRegister = async () => {
+    if (validateForm()) {
+      try {
+        const userDetails = { userName, email, password };
+        await AsyncStorage.setItem("user", JSON.stringify(userDetails));
 
-      // Nakon uspješne registracije idi na login
-      router.push("/login");
-    } catch (error) {
-      console.log("Registration error:", error);
-      Alert.alert(
-        "Error",
-        "Something went wrong during registration."
-      );
+        Alert.alert("Uspjeh", "Registracija uspješna!", [
+          { text: "OK", onPress: () => router.replace("/login") },
+        ]);
+      } catch (error) {
+        Alert.alert("Greška", "Došlo je do greške pri čuvanju podataka.");
+      }
     }
   };
 
+  // Step 1: Set Up UI Components
   return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: COLORS.lightWhite,
-      }}
-    >
-      <Stack.Screen
-        options={{
-          headerStyle: {
-            backgroundColor: COLORS.lightWhite,
-          },
-          headerShadowVisible: false,
-          headerTitle: "",
-        }}
+    <View style={styles.container}>
+      <Text style={styles.title}>Sign Up</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your username"
+        value={userName}
+        onChangeText={setUserName}
       />
 
-      <View
-        style={{
-          flex: 1,
-          padding: 20,
-        }}
-        testID="signupContainer"
-      >
-        {/* ICON */}
-        <View
-          style={{
-            padding: 20,
-            marginLeft: "auto",
-            marginRight: "auto",
-            backgroundColor: "#f0f0f0",
-            borderRadius: 50,
-            height: 90,
-            ...SHADOWS.medium,
-            shadowColor: COLORS.white,
-          }}
-          testID="imageIcon"
-        >
-          <Image
-            source={icons.menu}
-            style={{
-              width: 50,
-              height: 50,
-            }}
-          />
-        </View>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
 
-        {/* FORM */}
-        <View
-          style={{
-            marginTop: 30,
-          }}
-          testID="formData"
-        >
-          {/* USERNAME */}
-          <View
-            style={{
-              marginBottom: 10,
-            }}
-            testID="userName"
-          >
-            <TextInput
-              style={{
-                borderColor: "#ccc",
-                borderWidth: 1,
-                padding: 10,
-                borderRadius: 5,
-                marginBottom: 10,
-              }}
-              value={userName}
-              onChangeText={setUserName}
-              placeholder="UserName"
-            />
-          </View>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
 
-          {/* EMAIL */}
-          <View
-            style={{
-              marginBottom: 10,
-            }}
-            testID="email"
-          >
-            <TextInput
-              style={{
-                borderColor: "#ccc",
-                borderWidth: 1,
-                padding: 10,
-                borderRadius: 5,
-                marginBottom: 10,
-              }}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
+      <TouchableOpacity style={styles.button} onPress={handleRegister}>
+        <Text style={styles.buttonText}>Sign Up</Text>
+      </TouchableOpacity>
 
-          {/* PASSWORD */}
-          <View
-            style={{
-              marginBottom: 20,
-            }}
-            testID="password"
-          >
-            <TextInput
-              style={{
-                borderColor: "#ccc",
-                borderWidth: 1,
-                padding: 10,
-                borderRadius: 5,
-              }}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={true}
-              placeholder="Password"
-            />
-          </View>
-        </View>
-
-        {/* SIGN UP BUTTON */}
-        <TouchableOpacity
-          style={{
-            backgroundColor: COLORS.primary,
-            padding: 15,
-            borderRadius: 5,
-            alignItems: "center",
-            marginBottom: 10,
-          }}
-          onPress={handleRegister}
-          testID="handleRegister"
-        >
-          <Text
-            style={{
-              color: "#fff",
-              fontWeight: "bold",
-            }}
-          >
-            Sign Up
-          </Text>
+      <View style={styles.navPrompt}>
+        <Text>Already have an account? </Text>
+        <TouchableOpacity onPress={() => router.push("/login")}>
+          <Text style={styles.linkText}>Login</Text>
         </TouchableOpacity>
-
-        {/* LOGIN */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
-            marginTop: 5,
-          }}
-          testID="textData"
-        >
-          <Text style={{ marginRight: 5 }}>
-            Already have an account?
-          </Text>
-
-          <TouchableOpacity
-            onPress={() => router.push("/login")}
-          >
-            <Text style={{ color: "blue" }}>
-              Login
-            </Text>
-          </TouchableOpacity>
-        </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
-};
+}
 
-export default SignUp;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    justifyContent: "center",
+    backgroundColor: "#fff",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  input: {
+    borderColor: "#ccc",
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  button: {
+    backgroundColor: "#007BFF",
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  navPrompt: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 15,
+  },
+  linkText: {
+    color: "blue",
+    fontWeight: "bold",
+  },
+});
