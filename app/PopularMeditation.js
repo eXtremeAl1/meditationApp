@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { useRouter } from "expo-router";
 
+
 import {
   View,
   Text,
@@ -25,6 +26,7 @@ import useFetch from "../hook/useFetch";
 const PopularMeditation = () => {
 
   const router = useRouter();
+
 
 
   const {
@@ -59,6 +61,7 @@ const PopularMeditation = () => {
         item
       )}
       onPress={() => handleCardPress(item)}
+      
     >
 
       <View
